@@ -5,7 +5,8 @@ import Home from "./pages/Home";
 import Sos from "./pages/Sos";
 import Heatmap from "./pages/Heatmap";
 import Messages from "./pages/Messages";
-import Contacts from "./pages/Contacts"; // Added Contacts page
+import Contacts from "./pages/Contacts"; 
+import Account from "./pages/Account";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -66,6 +67,13 @@ export default function App() {
           )}
           {page === "contacts" && (
             <Contacts
+              onBack={handleBack}
+              onLogout={handleLogout}
+              onNav={setPage}
+            />
+          )}
+          {page === "account" && (
+            <Account
               onBack={handleBack}
               onLogout={handleLogout}
               onNav={setPage}

@@ -1,24 +1,32 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import SOSReport, LocationShare, Alert, Contact, HeatmapPoint, UserContact, Message
+from .models import SOSReport, LocationShare, Alert, Contact, HeatmapPoint, UserContact, Message,UserProfile
 
 # ---------- USER SERIALIZER ----------
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['phone', 'alt_phone', 'address']
+
 class UserSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="username", read_only=True)
+    profile = UserProfileSerializer(required=False)
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'email': {'required': True}
-        }
+        fields = ['name', 'email', 'profile']
 
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-        return user
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('profile', {})
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+        # get or create the related profile
+        profile, created = UserProfile.objects.get_or_create(user=instance)
+        profile.phone = profile_data.get('phone', profile.phone)
+        profile.alt_phone = profile_data.get('alt_phone', profile.alt_phone)
+        profile.address = profile_data.get('address', profile.address)
+        profile.save()
+        return instance
 
 # ---------- SOS REPORT SERIALIZER ----------
 class SOSReportSerializer(serializers.ModelSerializer):
